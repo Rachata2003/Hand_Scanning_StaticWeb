@@ -23,6 +23,7 @@
             height: auto;
             border: 5px solid #3498db;
             border-radius: 10px;
+            object-fit: cover; /* เพิ่มให้ภาพครอบคลุมพื้นที่ */
         }
         .capture-container {
             position: absolute;
@@ -71,18 +72,27 @@
     const capturedImage = document.getElementById('capturedImage');
     const imagePreview = document.getElementById('imagePreview');
 
-    // Access the camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            video.srcObject = stream;
-        })
-        .catch(error => {
-            console.log('Error accessing camera: ', error);
-        });
+    // Access the rear camera (environment)
+    navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+    })
+    .then(stream => {
+        video.srcObject = stream;
+    })
+    .catch(error => {
+        console.log('Error accessing camera: ', error);
+    });
+
+    // Set up the video size to match the container
+    video.addEventListener('loadedmetadata', () => {
+        video.width = window.innerWidth;
+        video.height = window.innerHeight;
+    });
 
     // Capture image when button is clicked
     captureButton.addEventListener('click', () => {
         const context = canvas.getContext('2d');
+        // Draw the video stream to the canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/png');
         capturedImage.src = dataUrl;
