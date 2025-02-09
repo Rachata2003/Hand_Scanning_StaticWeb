@@ -1,104 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capture Hand Image</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f2f2f2;
-        }
-        .container {
-            text-align: center;
-            position: relative;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            border: 5px solid #3498db;
-            border-radius: 10px;
-            object-fit: contain; /* เพิ่ม object-fit: contain */
-        }
-        .capture-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            height: 50%;
-            border: 3px dashed #ff6347;
-            border-radius: 10px;
-            pointer-events: none;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hand Measurement App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    video, canvas {
+      border: 2px solid black;
+      margin-top: 10px;
+    }
+    #results {
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+  </style>
 </head>
 <body>
+  <h1>Hand Measurement App</h1>
+  <video id="camera" width="320" height="240" autoplay playsinline></video>
+  <canvas id="photo" width="320" height="240" style="display:none;"></canvas>
+  <br>
+  <button id="capture">Capture Image</button>
+  <div id="results"></div>
 
-<div class="container">
-    <h1>Capture Your Hand Image</h1>
-    <video id="video" autoplay playsinline></video>
-    <div class="capture-container"></div>
-    <button id="captureButton">Capture Image</button>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div id="imagePreview" style="display:none;">
-        <h3>Captured Image:</h3>
-        <img id="capturedImage" src="" alt="Captured Image" style="width: 100%; max-width: 300px;"/>
-    </div>
-</div>
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('photo');
+    const captureButton = document.getElementById('capture');
+    const resultsDiv = document.getElementById('results');
 
-<script>
-    const video = document.getElementById('video');
-    const captureButton = document.getElementById('captureButton');
-    const canvas = document.getElementById('canvas');
-    const capturedImage = document.getElementById('capturedImage');
-    const imagePreview = document.getElementById('imagePreview');
-
-    // Access the rear camera (environment)
-    navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" } 
-    })
-    .then(stream => {
+    // Start video stream from the rear camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
         video.srcObject = stream;
-    })
-    .catch(error => {
-        console.log('Error accessing camera: ', error);
-    });
+      })
+      .catch(err => {
+        console.error("Error accessing camera: ", err);
+      });
 
-    // Set up the video size to match the container
-    video.addEventListener('loadedmetadata', () => {
-        video.width = window.innerWidth;
-        video.height = window.innerHeight;
-    });
-
-    // Capture image when button is clicked
     captureButton.addEventListener('click', () => {
-        const context = canvas.getContext('2d');
-        // Draw the video stream to the canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/png');
-        capturedImage.src = dataUrl;
-        imagePreview.style.display = 'block';
-    });
-</script>
+      const context = canvas.getContext('2d');
+      canvas.style.display = 'block';
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+      // Example fixed measurement logic for demonstration
+      const coinDiameterMM = 20; // 1 Baht coin diameter in millimeters
+      const pixelPerMM = canvas.width / coinDiameterMM; // Simplified pixel scaling
+
+      // Mock measurement results (replace with actual image processing later)
+      const measurements = {
+        fingerWidths: [15, 16, 14, 13, 12].map(w => (w / pixelPerMM).toFixed(2)),
+        fingerLengths: [70, 65, 60, 55, 50].map(l => (l / pixelPerMM).toFixed(2)),
+        palmWidth: (90 / pixelPerMM).toFixed(2)
+      };
+
+      // Display measurement results
+      resultsDiv.innerHTML = `
+        <h2>Measurement Results</h2>
+        <p>Finger Widths (mm): ${measurements.fingerWidths.join(', ')}</p>
+        <p>Finger Lengths (mm): ${measurements.fingerLengths.join(', ')}</p>
+        <p>Palm Width (mm): ${measurements.palmWidth}</p>
+      `;
+    });
+  </script>
 </body>
 </html>
