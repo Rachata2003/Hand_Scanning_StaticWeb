@@ -5,25 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hand Measurement</title>
     <script defer src="script.js"></script>
-    <style>
-        video {
-            width: 100%;
-            max-width: 600px;
-            display: block;
-        }
-        canvas {
-            display: none;
-        }
-        #measurements {
-            white-space: pre-line;
-        }
-    </style>
 </head>
 <body>
     <h1>Hand Measurement System</h1>
-    <video id="video" autoplay playsinline></video>
+    <video id="video" autoplay></video>
+    <canvas id="canvas" style="display:none;"></canvas>
     <button id="capture">Capture Image</button>
-    <canvas id="canvas"></canvas>
     <p id="warning" style="color: red; display: none;">No coin detected! Please retake the image.</p>
     <h2>Measured Values (mm)</h2>
     <p id="measurements"></p>
