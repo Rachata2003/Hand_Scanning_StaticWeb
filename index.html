@@ -4,15 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hand Measurement</title>
-    <script defer src="script.js"></script>
     <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
+    <script defer src="script.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        video { width: 100%; max-width: 400px; }
+        canvas { display: none; }
+        #capturedImage { display: none; width: 100%; max-width: 400px; margin-top: 10px; }
+        #warning { color: red; display: none; }
+    </style>
 </head>
 <body>
     <h1>Hand Measurement System</h1>
-    <video id="video" autoplay></video>
-    <canvas id="canvas" style="display:none;"></canvas>
+    <video id="video" autoplay playsinline></video>
     <button id="capture">Capture Image</button>
-    <p id="warning" style="color: red; display: none;">No coin detected! Please retake the image.</p>
+    <canvas id="canvas"></canvas>
+    <img id="capturedImage" alt="Captured Image" />
+    <p id="warning">No coin detected! Please retake the image.</p>
     <h2>Measured Values (mm)</h2>
     <p id="measurements"></p>
 </body>
