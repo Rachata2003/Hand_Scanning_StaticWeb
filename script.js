@@ -7,16 +7,15 @@ const warning = document.getElementById('warning');
 const COIN_REAL_SIZE_MM = 20;
 
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(stream => { 
-        video.srcObject = stream;
-        video.setAttribute('playsinline', true);
-    })
+    .then(stream => { video.srcObject = stream; })
     .catch(err => { console.error("Error accessing camera:", err); });
 
 captureButton.addEventListener('click', () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.drawImage(video, 0, 0);
+    video.style.display = 'none';
+    canvas.style.display = 'block';
     
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const detectedCoin = detectCoin(imageData);
@@ -32,31 +31,20 @@ captureButton.addEventListener('click', () => {
     const pixelToMmRatio = COIN_REAL_SIZE_MM / detectedCoin.diameterPx;
     const measurements = measureHandFeatures(imageData, pixelToMmRatio);
     
-    measurementsDisplay.innerHTML = `Finger Widths: ${measurements.fingerWidths.join(', ')} mm\n
-                                     Finger Lengths: ${measurements.fingerLengths.join(', ')} mm\n
+    measurementsDisplay.innerHTML = `Finger Widths: ${measurements.fingerWidths.join(', ')} mm<br>
+                                     Finger Lengths: ${measurements.fingerLengths.join(', ')} mm<br>
                                      Palm Width: ${measurements.palmWidth} mm`;
 });
 
 function detectCoin(imageData) {
-    // แทนที่จะใช้ค่าคงที่ นี่คือตัวอย่างการตรวจจับจริง
-    const threshold = 50;
-    let coinDiameterPx = null;
-
-    for (let i = 0; i < imageData.data.length; i += 4) {
-        const brightness = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
-        if (brightness < threshold) {
-            coinDiameterPx = 150; // จำลองค่าถ้าพบเหรียญ
-            break;
-        }
-    }
-
-    return coinDiameterPx ? { diameterPx: coinDiameterPx } : null;
+    // Implement coin detection logic here (edge detection, shape recognition, etc.)
+    return null; // Placeholder: return null to simulate no detection
 }
 
 function measureHandFeatures(imageData, pixelToMmRatio) {
     return {
-        fingerWidths: [15, 14, 16, 13, 12].map(px => (px * pixelToMmRatio).toFixed(2)),
-        fingerLengths: [50, 55, 60, 52, 48].map(px => (px * pixelToMmRatio).toFixed(2)),
-        palmWidth: (80 * pixelToMmRatio).toFixed(2)
+        fingerWidths: [Math.random() * 10 + 10, Math.random() * 10 + 10, Math.random() * 10 + 10, Math.random() * 10 + 10, Math.random() * 10 + 10].map(px => px * pixelToMmRatio),
+        fingerLengths: [Math.random() * 30 + 40, Math.random() * 30 + 40, Math.random() * 30 + 40, Math.random() * 30 + 40, Math.random() * 30 + 40].map(px => px * pixelToMmRatio),
+        palmWidth: (Math.random() * 20 + 70) * pixelToMmRatio
     };
 }
