@@ -6,42 +6,39 @@ const measurementsDisplay = document.getElementById('measurements');
 const warning = document.getElementById('warning');
 const COIN_REAL_SIZE_MM = 20;
 
-document.addEventListener("DOMContentLoaded", () => {
-    startCamera();
+document.addEventListener("DOMContentLoaded", async () => {
+    await startCamera();
 });
 
-function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(stream => { 
-            video.srcObject = stream;
-            video.play(); 
-        })
-        .catch(err => { 
-            console.error("Error accessing camera:", err);
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
         });
+        video.srcObject = stream;
+
+        // Safari Trick: ต้องทำให้เล่นอัตโนมัติ
+        await video.play();
+    } catch (err) {
+        console.error("Error accessing camera:", err);
+    }
 }
 
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(stream => { video.srcObject = stream; })
     .catch(err => { console.error("Error accessing camera:", err); });
 
-captureButton.addEventListener('click', () => {
+captureButton.addEventListener("click", async () => {
+    // รอให้กล้องโฟกัสก่อน (ช่วยลด Motion Blur)
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0);
-    video.style.display = 'none';
-    canvas.style.display = 'block';
-    
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    const detectedCoin = detectCoin(imageData);
-    
-    if (!detectedCoin) {
-        warning.style.display = 'block';
-        measurementsDisplay.innerHTML = '';
-        return;
-    } else {
-        warning.style.display = 'none';
-    }
+
+    // แสดงภาพที่บันทึก
+    canvas.style.display = "block";
+});
     
     const pixelToMmRatio = COIN_REAL_SIZE_MM / detectedCoin.diameterPx;
     const measurements = measureHandFeatures(imageData, pixelToMmRatio);
