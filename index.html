@@ -1,74 +1,71 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hand Measurement App</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    video, canvas {
-      border: 2px solid black;
-      margin-top: 10px;
-    }
-    #results {
-      margin-top: 20px;
-      font-size: 1rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Measurement</title>
+    <script defer src="script.js"></script>
 </head>
 <body>
-  <h1>Hand Measurement App</h1>
-  <video id="camera" width="320" height="240" autoplay playsinline></video>
-  <canvas id="photo" width="320" height="240" style="display:none;"></canvas>
-  <br>
-  <button id="capture">Capture Image</button>
-  <div id="results"></div>
-
-  <script>
-    const video = document.getElementById('camera');
-    const canvas = document.getElementById('photo');
-    const captureButton = document.getElementById('capture');
-    const resultsDiv = document.getElementById('results');
-
-    // Start video stream from the rear camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        console.error("Error accessing camera: ", err);
-      });
-
-    captureButton.addEventListener('click', () => {
-      const context = canvas.getContext('2d');
-      canvas.style.display = 'block';
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // Example fixed measurement logic for demonstration
-      const coinDiameterMM = 20; // 1 Baht coin diameter in millimeters
-      const pixelPerMM = canvas.width / coinDiameterMM; // Simplified pixel scaling
-
-      // Mock measurement results (replace with actual image processing later)
-      const measurements = {
-        fingerWidths: [15, 16, 14, 13, 12].map(w => (w / pixelPerMM).toFixed(2)),
-        fingerLengths: [70, 65, 60, 55, 50].map(l => (l / pixelPerMM).toFixed(2)),
-        palmWidth: (90 / pixelPerMM).toFixed(2)
-      };
-
-      // Display measurement results
-      resultsDiv.innerHTML = `
-        <h2>Measurement Results</h2>
-        <p>Finger Widths (mm): ${measurements.fingerWidths.join(', ')}</p>
-        <p>Finger Lengths (mm): ${measurements.fingerLengths.join(', ')}</p>
-        <p>Palm Width (mm): ${measurements.palmWidth}</p>
-      `;
-    });
-  </script>
+    <h1>Hand Measurement System</h1>
+    <video id="video" autoplay></video>
+    <button id="capture">Capture Image</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <p id="warning" style="color: red; display: none;">No coin detected! Please retake the image.</p>
+    <h2>Measured Values (mm)</h2>
+    <p id="measurements"></p>
 </body>
 </html>
+
+<!-- script.js -->
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
+const captureButton = document.getElementById('capture');
+const measurementsDisplay = document.getElementById('measurements');
+const warning = document.getElementById('warning');
+const COIN_REAL_SIZE_MM = 20;
+
+navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => { console.error("Error accessing camera:", err); });
+
+captureButton.addEventListener('click', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+    
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const detectedCoin = detectCoin(imageData);
+    
+    if (!detectedCoin) {
+        warning.style.display = 'block';
+        measurementsDisplay.innerHTML = '';
+        return;
+    } else {
+        warning.style.display = 'none';
+    }
+    
+    const pixelToMmRatio = COIN_REAL_SIZE_MM / detectedCoin.diameterPx;
+    const measurements = measureHandFeatures(imageData, pixelToMmRatio);
+    
+    measurementsDisplay.innerHTML = `Finger Widths: ${measurements.fingerWidths.join(', ')} mm<br>
+                                     Finger Lengths: ${measurements.fingerLengths.join(', ')} mm<br>
+                                     Palm Width: ${measurements.palmWidth} mm`;
+});
+
+function detectCoin(imageData) {
+    // Implement coin detection logic here (edge detection, shape recognition, etc.)
+    // Return object { diameterPx: number } if coin is detected, else return null
+    return { diameterPx: 150 }; // Placeholder value
+}
+
+function measureHandFeatures(imageData, pixelToMmRatio) {
+    // Implement feature measurement logic here
+    return {
+        fingerWidths: [15, 14, 16, 13, 12].map(px => px * pixelToMmRatio),
+        fingerLengths: [50, 55, 60, 52, 48].map(px => px * pixelToMmRatio),
+        palmWidth: 80 * pixelToMmRatio
+    };
+}
