@@ -6,6 +6,21 @@ const measurementsDisplay = document.getElementById('measurements');
 const warning = document.getElementById('warning');
 const COIN_REAL_SIZE_MM = 20;
 
+document.addEventListener("DOMContentLoaded", () => {
+    startCamera();
+});
+
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => { 
+            video.srcObject = stream;
+            video.play(); 
+        })
+        .catch(err => { 
+            console.error("Error accessing camera:", err);
+        });
+}
+
 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(stream => { video.srcObject = stream; })
     .catch(err => { console.error("Error accessing camera:", err); });
