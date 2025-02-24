@@ -24,6 +24,7 @@ document.getElementById("capture").addEventListener("click", async () => {
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const context = canvas.getContext("2d");
+    const capturedImage = document.getElementById("capturedImage"); // รูปที่จะแสดง
     const measurementsDisplay = document.getElementById("measurements");
     const warning = document.getElementById("warning");
 
@@ -37,7 +38,11 @@ document.getElementById("capture").addEventListener("click", async () => {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // ✅ แสดงผลภาพที่จับได้
+    capturedImage.src = canvas.toDataURL("image/png");
+    capturedImage.style.display = "block";
 
     // ดึงข้อมูลภาพเพื่อตรวจจับเหรียญ
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
