@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+    const captureButton = document.getElementById("capture");
     captureButton.disabled = true; // ปิดปุ่มก่อนโหลดกล้องเสร็จ
     await startCamera();
     captureButton.disabled = false; // เปิดปุ่มหลังกล้องพร้อมใช้งาน
@@ -6,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function startCamera() {
     try {
+        const video = document.getElementById("video");
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "environment" }
         });
@@ -18,7 +20,13 @@ async function startCamera() {
     }
 }
 
-captureButton.addEventListener("click", async () => {
+document.getElementById("capture").addEventListener("click", async () => {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    const measurementsDisplay = document.getElementById("measurements");
+    const warning = document.getElementById("warning");
+
     // Safari ต้องการ interaction ก่อนเปิดกล้อง → ตรวจสอบ stream ก่อนแคปเจอร์
     if (!video.srcObject) {
         await startCamera();
@@ -30,9 +38,6 @@ captureButton.addEventListener("click", async () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0);
-
-    // แสดงภาพที่บันทึก
-    canvas.style.display = "block";
 
     // ดึงข้อมูลภาพเพื่อตรวจจับเหรียญ
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
@@ -47,6 +52,7 @@ captureButton.addEventListener("click", async () => {
     }
 
     // คำนวณสัดส่วน pixel -> mm โดยใช้เหรียญเป็นมาตรฐาน
+    const COIN_REAL_SIZE_MM = 20;
     const pixelToMmRatio = COIN_REAL_SIZE_MM / detectedCoin.diameterPx;
     const measurements = measureHandFeatures(imageData, pixelToMmRatio);
 
@@ -57,18 +63,17 @@ captureButton.addEventListener("click", async () => {
 });
 
 function detectCoin(imageData) {
-    // แปลง ImageData เป็น OpenCV Mat
     let src = cv.matFromImageData(imageData);
     let gray = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY); // แปลงเป็น Grayscale
     
-    // ลด Noise
-    let blurred = new cv.Mat();
-    cv.GaussianBlur(gray, blurred, new cv.Size(9, 9), 2, 2);
+    // Adaptive threshold เพื่อเพิ่ม contrast
+    let thresh = new cv.Mat();
+    cv.adaptiveThreshold(gray, thresh, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
 
     // ค้นหาเส้นขอบด้วย Canny
     let edges = new cv.Mat();
-    cv.Canny(blurred, edges, 50, 150);
+    cv.Canny(thresh, edges, 50, 150);
 
     // ค้นหาวงกลมด้วย Hough Transform
     let circles = new cv.Mat();
@@ -77,14 +82,16 @@ function detectCoin(imageData) {
     if (circles.cols > 0) {
         let radius = circles.data32F[2]; // ดึงขนาดรัศมีของวงกลมแรกที่เจอ
         let diameterPx = radius * 2;
+
+        src.delete(); gray.delete(); thresh.delete(); edges.delete(); circles.delete();
         return { diameterPx: diameterPx };
     }
 
+    src.delete(); gray.delete(); thresh.delete(); edges.delete(); circles.delete();
     return null; // ไม่พบเหรียญ
 }
 
 function measureHandFeatures(imageData, pixelToMmRatio) {
-    // ใช้ pixelToMmRatio แปลงค่าต่างๆ
     return {
         fingerWidths: [15, 14, 16, 13, 12].map(px => px * pixelToMmRatio),
         fingerLengths: [50, 55, 60, 52, 48].map(px => px * pixelToMmRatio),
