@@ -1,27 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hand Measurement</title>
-    <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
-    <script defer src="script.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        video { width: 100%; max-width: 400px; }
-        canvas { display: none; }
-        #capturedImage { display: none; width: 100%; max-width: 400px; margin-top: 10px; }
-        #warning { color: red; display: none; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        video {
+            width: 100%;
+            max-width: 480px;
+            border: 2px solid black;
+        }
+        canvas {
+            display: none;
+        }
+        img {
+            width: 100%;
+            max-width: 480px;
+            display: none;
+            border: 2px solid black;
+        }
+        #warning {
+            color: red;
+            font-weight: bold;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>Hand Measurement System</h1>
+
+    <h1>📏 ระบบวัดขนาดฝ่ามือ</h1>
+
+    <!-- Live Camera -->
     <video id="video" autoplay playsinline></video>
-    <button id="capture">Capture Image</button>
+
+    <!-- Hidden Canvas (ใช้สำหรับ Capture ภาพ) -->
     <canvas id="canvas"></canvas>
-    <img id="capturedImage" alt="Captured Image" />
-    <p id="warning">No coin detected! Please retake the image.</p>
-    <h2>Measured Values (mm)</h2>
+
+    <!-- ปุ่มถ่ายภาพ -->
+    <button id="capture">📸 ถ่ายภาพ</button>
+
+    <!-- แสดงภาพที่ถ่าย -->
+    <h2>📌 ภาพที่จับได้</h2>
+    <img id="capturedImage" alt="Captured Image">
+
+    <!-- แสดงผลการวัด -->
+    <h2>📏 ขนาดที่คำนวณได้</h2>
     <p id="measurements"></p>
+    
+    <!-- แจ้งเตือนถ้าไม่พบเหรียญ -->
+    <p id="warning">⚠️ ไม่พบเหรียญ กรุณาวางเหรียญในกรอบ!</p>
+
+    <!-- โหลด OpenCV.js -->
+    <script async src="https://docs.opencv.org/4.x/opencv.js" onload="console.log('OpenCV Loaded')" onerror="console.error('Failed to load OpenCV')"></script>
+
+    <!-- โหลด script.js -->
+    <script src="script.js"></script>
+
 </body>
 </html>
